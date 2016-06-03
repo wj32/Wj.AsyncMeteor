@@ -4,9 +4,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace AsyncMeteor
+namespace Wj.AsyncMeteor
 {
-    public class Class1
+    internal static class Util
     {
+        public static void Forget(this Task task)
+        { }
     }
 }
