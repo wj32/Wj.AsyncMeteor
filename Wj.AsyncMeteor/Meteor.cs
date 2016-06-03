@@ -32,7 +32,7 @@ namespace Wj.AsyncMeteor
         {
             public string Method;
             public object[] Values;
-            public Action<ErrorOrResult> Callback;
+            public Action<ErrorOrResult<dynamic>> Callback;
         }
 
         public enum SubscriptionState
@@ -325,7 +325,7 @@ namespace Wj.AsyncMeteor
                         PendingCall pendingCall;
                         if (_pendingCalls.TryGetValue(id, out pendingCall))
                         {
-                            pendingCall.Callback(new ErrorOrResult { Error = message["error"], Result = message["result"] });
+                            pendingCall.Callback(new ErrorOrResult<dynamic> { Error = message["error"], Result = message["result"] });
                             _pendingCalls.Remove(id);
                         }
                     }
@@ -413,7 +413,7 @@ namespace Wj.AsyncMeteor
             return (_nextId++).ToString();
         }
 
-        private async Task Call(string method, object[] values, Action<ErrorOrResult> callback)
+        private async Task Call(string method, object[] values, Action<ErrorOrResult<dynamic>> callback)
         {
             var id = GenerateCallId();
 
@@ -439,9 +439,9 @@ namespace Wj.AsyncMeteor
             });
         }
 
-        public async Task<ErrorOrResult> Call(string method, params object[] values)
+        public async Task<ErrorOrResult<dynamic>> Call(string method, params object[] values)
         {
-            var source = new TaskCompletionSource<ErrorOrResult>();
+            var source = new TaskCompletionSource<ErrorOrResult<dynamic>>();
             await this.Call(method, values, eor => source.SetResult(eor));
             return await source.Task;
         }
@@ -484,7 +484,7 @@ namespace Wj.AsyncMeteor
             await this.Subscribe(name, values, subscription =>
             {
                 if (subscription.State == SubscriptionState.Ready)
-                    source.SetResult(new ErrorOrResult<Subscription> { Error = null, Result = subscription });
+                    source.SetResult(new ErrorOrResult<Subscription> { Result = subscription });
                 else if (subscription.State == SubscriptionState.Unsubscribed)
                     source.SetResult(new ErrorOrResult<Subscription> { Error = subscription.Error });
                 return TaskConstants.Completed;
